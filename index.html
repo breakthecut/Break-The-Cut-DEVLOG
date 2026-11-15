@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="The making of Break The Cut!, a multiplayer comedy built for the 2026 Epic AI MegaJam.">
+<title>Break The Cut! — Development Log</title>
+<style>
+@font-face {
+  font-family: Splice;
+  src: url("ui/fonts/SpliceDisplay.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: Barlow;
+  src: url("ui/fonts/barlow/Barlow-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+@font-face {
+  font-family: Barlow;
+  src: url("ui/fonts/barlow/Barlow-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+:root {
+  color-scheme: dark;
+  --ink: #131017;
+  --shade: #201a22;
+  --paper: #f7edd9;
+  --muted: #c4b6b9;
+  --rule: #4b3940;
+  --amber: #ffba49;
+  --display: Splice, Impact, sans-serif;
+  font: 18px/1.55 Barlow, sans-serif;
+  background: var(--ink);
+  color: var(--paper);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+img, video { display: block; width: 100%; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--amber); outline-offset: 5px; }
+a:hover { color: var(--amber); }
+.wrap { width: min(1240px, calc(100% - 88px)); margin-inline: auto; }
+.top { background: #100d14; border-bottom: 1px solid var(--rule); }
+.top .wrap, footer .wrap { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; padding-block: 16px; }
+.wordmark { font: 20px var(--display); text-decoration: none; }
+.archive { color: var(--muted); font-weight: 600; text-underline-offset: .24em; }
+.hero { position: relative; isolation: isolate; background: #1d1320; border-bottom: 1px solid var(--rule); overflow: hidden; }
+.hero-frame { position: absolute; inset: 0 0 0 30%; z-index: -2; width: 70%; height: 100%; object-fit: cover; object-position: 52% center; }
+.hero::after { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(90deg,#1d1320 22%,#1d1320fa 32%,#1d13205e 64%,transparent 100%),linear-gradient(0deg,#1d1320,transparent 30%); }
+.hero .wrap { display: flex; min-height: min(620px, 75vh); align-items: center; padding-block: 58px; }
+.hero-copy { max-width: 535px; }
+.period, .story time, .section-label { color: var(--amber); font: 600 .8rem/1.4 Barlow, sans-serif; letter-spacing: .13em; text-transform: uppercase; }
+h1, h2 { font-family: var(--display); font-weight: 400; line-height: 1.03; margin: 0; text-transform: uppercase; }
+h1 { margin: 12px 0 22px; font-size: clamp(3rem, 7vw, 6rem); }
+.hero-copy p { max-width: 34ch; color: var(--muted); font-size: 1.25rem; margin: 0 0 30px; }
+.primary { display: inline-block; background: var(--amber); color: #1e1415; padding: 12px 19px; font: 16px var(--display); text-decoration: none; clip-path: polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px)); }
+.primary:hover { background: #ffcf76; color: #1e1415; }
+.film-edge { height: 9px; background: repeating-linear-gradient(130deg,var(--amber) 0 9px,#2b1e24 9px 21px); opacity: .74; }
+.timeline { margin-top: 46px; }
+.timeline-nav { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px 22px; border-bottom: 1px solid var(--rule); padding-bottom: 19px; }
+.timeline-nav h2 { margin-right: auto; font-size: 1.5rem; }
+.timeline-nav a { color: var(--muted); text-decoration: none; font-weight: 600; }
+.timeline-nav a:hover { color: var(--amber); }
+.story { display: grid; grid-template-columns: minmax(0,.88fr) minmax(0,1.25fr); gap: clamp(28px, 6vw, 88px); align-items: center; padding-block: 55px; border-bottom: 1px solid var(--rule); scroll-margin-top: 16px; }
+.story h2 { margin: 10px 0 18px; font-size: clamp(2rem, 3.5vw, 3rem); text-wrap: balance; }
+.story p { margin: 0 0 15px; color: var(--muted); }
+.story p:last-child { margin-bottom: 0; }
+figure { margin: 0; }
+figure img, figure video { aspect-ratio: 16/9; object-fit: contain; background: #100d13; border: 1px solid var(--rule); }
+figcaption { margin-top: 8px; color: var(--muted); font-size: .85rem; }
+.comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.comparison figcaption { margin-top: 4px; }
+.day-notes {
+  margin-top: 24px;
+  border: 1px solid #5d4544;
+  border-radius: 6px;
+  background: #231b23;
+}
+.day-notes summary {
+  display: grid;
+  grid-template-columns: 22px 1fr 28px;
+  gap: 12px;
+  align-items: center;
+  min-height: 52px;
+  padding: 10px 13px;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 5px;
+  font: 1rem/1.2 var(--display);
+  text-transform: uppercase;
+}
+.day-notes summary::-webkit-details-marker { display: none; }
+.day-notes summary:hover, .day-notes[open] summary { background: #35252a; color: var(--amber); }
+.day-notes summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 4px; }
+.notes-mark {
+  height: 19px;
+  border: 1px solid #674931;
+  border-radius: 2px;
+  background: repeating-linear-gradient(135deg,var(--amber) 0 4px,#342328 4px 8px);
+}
+.notes-toggle {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #674931;
+  border-radius: 3px;
+  color: var(--amber);
+  background: #1a141b;
+  font: 600 20px/1 Barlow, sans-serif;
+}
+.notes-toggle::before { content: "+"; }
+.day-notes[open] .notes-toggle::before { content: "−"; }
+.notes-body { border-top: 1px dashed #5d4544; padding: 14px 16px 17px; font-size: .92rem; }
+.notes-body p { margin: 0 0 12px; }
+.notes-body strong { color: var(--paper); font-weight: 600; }
+.notes-link { color: var(--amber); text-underline-offset: .22em; }
+.reference-panel {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,.84fr);
+  gap: 18px 28px;
+  padding: clamp(16px, 3vw, 30px);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--amber);
+  background: var(--shade);
+}
+#nov-12, #nov-13, #nov-14, #nov-15 { row-gap: 28px; }
+.reference-intro { grid-column: 1 / -1; }
+.reference-intro h3, .team-call h3 {
+  margin: 0 0 8px;
+  font: clamp(1.25rem, 3vw, 1.85rem)/1.12 var(--display);
+  text-transform: uppercase;
+}
+#hand-reference video { aspect-ratio: 1280/400; }
+#playtest-audio, .lighting-review, .media-pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.reference-panel img { height: auto; }
+.reference-panel strong { color: var(--paper); font-weight: 600; }
+.room-overview { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.lighting-review { align-items: start; }
+.lighting-review h4 { margin: 0 0 8px; font-size: 1.1rem; }
+.lighting-review img { aspect-ratio: auto; }
+.lighting-review > div > figure + figure { margin-top: 18px; }
+.lighting-review figure + h4 { margin-top: 22px; }
+.team-call {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 359px);
+  align-items: center;
+  gap: 18px 32px;
+  padding: clamp(16px, 3vw, 30px);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--amber);
+  background: var(--shade);
+  scroll-margin-top: 16px;
+}
+.team-call p { max-width: 53ch; }
+.team-call img { max-width: 359px; height: auto; border: 1px solid var(--rule); border-radius: 5px; }
+footer { margin-top: 36px; background: #100d14; }
+@media (max-width: 850px) {
+  .wrap { width: calc(100% - 40px); }
+  .hero .wrap { min-height: 0; padding-block: 52px 44px; }
+  .hero-frame { inset: auto 0 0 auto; width: 100%; height: 100%; }
+  .hero::after { background: linear-gradient(90deg,#1d1320f7,#1d132078),linear-gradient(0deg,#1d1320,transparent 50%); }
+  .story { grid-template-columns: 1fr; padding-block: 36px; }
+  .reference-panel, .team-call, #playtest-audio { grid-template-columns: minmax(0, 1fr); }
+  .timeline { margin-top: 30px; }
+}
+@media (max-width: 480px) {
+  .timeline-nav h2 { width: 100%; }
+  .timeline-nav { column-gap: 15px; }
+  .wordmark { font-size: 17px; }
+  .archive { font-size: 15px; }
+}
+</style>
+</head>
+<body>
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="wordmark" href="#top">Break The Cut!</a>
+    <a class="archive" href="../Devlog.md">Full devlog ↗</a>
+  </div>
+</header>
+<main>
+  <section class="hero" aria-labelledby="page-title">
+    <img class="hero-frame" src="media/2026-11-15/devlog-stage-hero.jpg" alt="">
+    <div class="wrap">
+      <div class="hero-copy">
+        <div class="period">Epic AI MegaJam · November 2026</div>
+        <h1 id="page-title">Behind<br>the cut</h1>
+        <p>A director hires pranksters to sabotage his own show. Here’s how we turned that terrible production decision into a multiplayer comedy.</p>
+        <a class="primary" href="#nov-12">Read from day one ↓</a>
+      </div>
+    </div>
+  </section>
+  <div class="film-edge" aria-hidden="true"></div>
+
+  <section class="wrap timeline" aria-labelledby="timeline">
+    <nav class="timeline-nav" aria-label="Jump to date">
+      <h2 id="timeline">Development log</h2>
+      <a href="#nov-12">Nov 12</a>
+      <a href="#nov-13">Nov 13</a>
+      <a href="#nov-14">Nov 14</a>
+      <a href="#nov-15">Nov 15</a>
+    </nav>
+
+    <article class="story" id="nov-12">
+      <div>
+        <time datetime="2026-11-12">November 12, 2026</time>
+        <h2>Who laughs when a prank lands?</h2>
+        <p>Our first house was a grid of rooms assembled from a seed. We put seats in front of it and gave the crowd something to do. A prank could get a laugh, a gasp or flowers thrown onto the set.</p>
+        <p>Then we wired the mic into movement. Your hands steer. Your voice decides how fast you go. Later, proximity chat gave the Star a chance to hear a prankster talking their way into a sprint.</p>
+        <p>Getting caught gave the rest of the crew a new job. The Star throws you in the cage, and someone has to find a key and use it to get you out.</p>
+        <details class="day-notes">
+          <summary><span class="notes-mark" aria-hidden="true"></span>Day’s Notes<span class="notes-toggle" aria-hidden="true"></span></summary>
+          <div class="notes-body">
+            <p><strong>Five open mics, five still players.</strong> In a five-player test, the room noise stayed below the threshold for movement. Holding Shift gave us the same test input every time, so we could check that all five windows agreed on where the player stopped.</p>
+            <a class="notes-link" href="../Devlog.md#2026-11-12">Full notes ↗</a>
+          </div>
+        </details>
+      </div>
+      <figure>
+        <video controls preload="none" playsinline aria-label="Audience reaction during an early take" poster="media/2026-11-15/devlog-first-stage.jpg" src="media/2026-11-12/showcase-audience.mp4"></video>
+        <figcaption>An early house from the audience side. Play the clip to see the crowd react to a prank.</figcaption>
+      </figure>
+      <section class="reference-panel room-overview" id="stage-evolution" aria-labelledby="stage-evolution-title">
+        <div class="reference-intro">
+          <h3 id="stage-evolution-title">From greybox to studio set</h3>
+          <p>The first vents went into six white rooms you could see from the seats. As the house grew, we put a wall of little windows between the audience and the action. Opening up the fronts again made it possible to follow a chase from room to room.</p>
+        </div>
+        <figure>
+          <a href="media/2026-11-12/prototype-vents.jpg"><img src="media/2026-11-12/prototype-vents.jpg" width="1920" height="1080" loading="lazy" alt="Six white prototype rooms with vent grilles next to the doors"></a>
+          <figcaption><strong>Vent prototype.</strong> Grilles connect rooms so pranksters can slip away.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-12/stage-wide-2026.jpg"><img src="media/2026-11-12/stage-wide-2026.jpg" width="1920" height="1080" loading="lazy" alt="Early stage with a pale facade, small window openings and red audience seats"></a>
+          <figcaption><strong>Nov 12.</strong> The larger house still has a front wall with windows.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-15/stage-current-wide.jpg"><img src="media/2026-11-15/stage-current-wide.jpg" width="1920" height="1080" loading="lazy" alt="All 25 rooms of the current studio set, open to the audience"></a>
+          <figcaption><strong>Nov 15.</strong> All 25 rooms of the current set in one shot.</figcaption>
+        </figure>
+      </section>
+      <section class="reference-panel lighting-review" id="first-directors-cut" aria-labelledby="first-directors-cut-title">
+        <div class="reference-intro">
+          <h3 id="first-directors-cut-title">The first Director’s Cut</h3>
+          <p>We wanted the director to get something out of all this sabotage. When the pranksters won, we cut from the full house to the prank that finished the match. That moment got its own film card on the results screen.</p>
+        </div>
+        <figure>
+          <video controls preload="none" playsinline aria-label="Early Director’s Cut playback showing the prototype house and the final prank" poster="media/2026-11-12/hq-directors-cut-poster.jpg" src="media/2026-11-12/hq-directors-cut.mp4"></video>
+          <figcaption>Early reel playback, from the wide shot to the prank.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-12/end-pranksters.jpg"><img src="media/2026-11-12/end-pranksters.jpg" width="1918" height="1081" loading="lazy" alt="Pranksters win on the Director’s Cut results screen, framed by red curtains"></a>
+          <figcaption>The pranksters’ win screen and its first replay card.</figcaption>
+        </figure>
+      </section>
+    </article>
+
+    <article class="story" id="nov-13">
+      <div>
+        <time datetime="2026-11-13">November 13, 2026</time>
+        <h2>Give the show a past</h2>
+        <p>In the opening comic, the audience cheers and the director counts the money. Then we cut to “Many Years Later.” By the time the players arrive, the director wants out of his contract and the pranksters are his plan.</p>
+        <p>We darkened the space around the house and put a camera on a rail along the front. The lobby became the call sheet for this show, with each player on their own cast monitor and a clapperboard between screens.</p>
+        <p>We recorded about 30 wordless reactions ourselves. A prankster’s giggle sells the gag. A grumble from the Star can make you stop and listen before you open a door.</p>
+        <details class="day-notes">
+          <summary><span class="notes-mark" aria-hidden="true"></span>Day’s Notes<span class="notes-toggle" aria-hidden="true"></span></summary>
+          <div class="notes-body">
+            <p><strong>Five faces for one bad mood.</strong> We made five portraits for the rage meter, taking the Star from a grumble to a full scream.</p>
+            <p><strong>The lettering came from the mockup.</strong> We rendered the browser’s tilted, two-tone headlines as title art for the game.</p>
+            <a class="notes-link" href="../Devlog.md#2026-11-13">Full notes ↗</a>
+          </div>
+        </details>
+      </div>
+      <figure>
+        <video controls preload="none" playsinline aria-label="The opening comic, from the Star’s heyday to Many Years Later" poster="media/2026-11-13/lore-intro-devlog-poster.jpg" src="media/2026-11-13/lore-intro-final-mix.mp4"></video>
+        <figcaption>The opening comic in-game, with its soundtrack and the “Many Years Later” card.</figcaption>
+      </figure>
+      <section class="reference-panel room-overview" id="cast-and-cage" aria-labelledby="cast-and-cage-title">
+        <div class="reference-intro">
+          <h3 id="cast-and-cage-title">Cast scale and the first cage</h3>
+          <p>Line up the cast and you could spot the problem immediately. The Star was the smallest person on set. We brought him up to 185 cm, with the Boy at 175 cm and the Girl at 168 cm. Then we put four caught pranksters into four separate spots in the new cage to see if everyone fit.</p>
+        </div>
+        <figure>
+          <a href="media/2026-11-13/character-heights.jpg"><img src="media/2026-11-13/character-heights.jpg" loading="lazy" alt="The Star, Boy and Girl lined up in the prison for a height check"></a>
+          <figcaption>The cast side by side after the scale pass.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-13/prototype-cage.jpg"><img src="media/2026-11-13/prototype-cage.jpg" loading="lazy" alt="A rectangular test cage in the downstairs greybox bathroom"></a>
+          <figcaption>The greybox cage in the downstairs bathroom.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-13/prisoner-in-cage.jpg"><img src="media/2026-11-13/prisoner-in-cage.jpg" loading="lazy" alt="Pranksters held inside the rounded cage in the furnished prison"></a>
+          <figcaption>Captured pranksters in the assembled prison.</figcaption>
+        </figure>
+      </section>
+      <section class="reference-panel media-pair" id="prank-effects-and-replays" aria-labelledby="prank-effects-and-replays-title">
+        <div class="reference-intro">
+          <h3 id="prank-effects-and-replays-title">Pranks, on set and in the reel</h3>
+          <p>The portrait used to jump straight from clean to defaced. We swapped it under a cartoon fight cloud and let the damage emerge as the smoke cleared. On the results screen, you could pick a film card and watch a prank unfold again.</p>
+        </div>
+        <figure>
+          <video controls preload="none" playsinline aria-label="Cartoon smoke hiding the portrait prank’s visual swap" poster="media/2026-11-13/cover-cloud-ui-poster.jpg" src="media/2026-11-13/cover-cloud-ui.mp4"></video>
+          <figcaption>The cloud hides the portrait as it changes.</figcaption>
+        </figure>
+        <figure>
+          <video controls preload="none" playsinline aria-label="A results card replays the office computer prank" poster="media/2026-11-13/d2-card-cut-poster.jpg" src="media/2026-11-13/d2-card-cut.mp4"></video>
+          <figcaption>Selecting a film card replays the computer prank.</figcaption>
+        </figure>
+      </section>
+      <section class="reference-panel room-overview" id="nov-13-playtest" aria-labelledby="nov-13-playtest-title">
+        <div class="reference-intro">
+          <h3 id="nov-13-playtest-title">Testing the rooms at player height</h3>
+          <p>At eye level, you can see what a player will actually notice. Foam on the floor and paint on the costume tell you something happened here even if you missed the prank. We put room jumps, prank triggers and replay controls behind F3 so we could test those moments on demand.</p>
+        </div>
+        <figure>
+          <a href="media/2026-11-13/office-v02-native-player-height.jpg"><img src="media/2026-11-13/office-v02-native-player-height.jpg" loading="lazy" alt="The office desk and computers seen at player height"></a>
+          <figcaption>The office at player height.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-13/washing-machine-costume-pranked.jpg"><img src="media/2026-11-13/washing-machine-costume-pranked.jpg" loading="lazy" alt="Foam spilling from the washing machine and spots of paint on the costume in a prototype room"></a>
+          <figcaption>Foam and paint stay visible after the pranks.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-13/show-debug-panel.jpg"><img src="media/2026-11-13/show-debug-panel.jpg" loading="lazy" alt="The F3 show debug panel on the right of the playtest view"></a>
+          <figcaption>The F3 panel during an editor playtest.</figcaption>
+        </figure>
+      </section>
+    </article>
+
+    <article class="story" id="nov-14">
+      <div>
+        <time datetime="2026-11-14">November 14, 2026</time>
+        <h2>The rehearsal changes sides</h2>
+        <p>On your first run, you learn to move with your voice, pull a prank and spring a teammate from the cage. Just after the rescue, the screen goes dark. “You Are the Star” comes up, and now you’re the one doing the catching.</p>
+        <p>We gave pranksters a map they fill in as they go. Step into a room and its type stays marked. A yellow outline tracks where you are inside a three-by-three window, even when the house is much bigger.</p>
+        <p>In the editor test, all three players loaded the same generated house, reached the Studio Cut and made it back to the call sheet for another round.</p>
+        <details class="day-notes">
+          <summary><span class="notes-mark" aria-hidden="true"></span>Day’s Notes<span class="notes-toggle" aria-hidden="true"></span></summary>
+          <div class="notes-body">
+            <p><strong>The garage set the scale.</strong> We widened the house cells from 15 to 22 metres to fit the full-size garage and its side passages.</p>
+            <a class="notes-link" href="../Devlog.md#2026-11-14">Full notes ↗</a>
+          </div>
+        </details>
+      </div>
+      <figure>
+        <video controls preload="none" playsinline aria-label="First-launch tutorial montage" poster="media/2026-11-14/tutorial-spotlight.jpg" src="media/2026-11-14/tutorial-first-launch.mp4"></video>
+        <figcaption>Walking practice and listening from the wardrobe in the first-launch rehearsal.</figcaption>
+      </figure>
+      <section class="reference-panel room-overview" id="room-overview" aria-labelledby="room-overview-title">
+        <div class="reference-intro">
+          <h3 id="room-overview-title">Inside the set</h3>
+          <p>The makeup room and costume room joined the rotation. Dress a mirror with lipstick or leave paint on the Star’s costume, and someone can walk in later and see the mess you left.</p>
+        </div>
+        <figure>
+          <a href="media/2026-11-14/open-room-fronts.jpg"><img src="media/2026-11-14/open-room-fronts.jpg" loading="lazy" alt="View the full-size cutaway house with open room fronts"></a>
+          <figcaption>The house from the audience seats.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-14/makeup-room-native-overview.jpg"><img src="media/2026-11-14/makeup-room-native-overview.jpg" loading="lazy" alt="View the full-size makeup room with its bulb-lit mirrors and central seating"></a>
+          <figcaption>Makeup room.</figcaption>
+        </figure>
+        <figure>
+          <a href="media/2026-11-14/costume-room-native.jpg"><img src="media/2026-11-14/costume-room-native.jpg" loading="lazy" alt="View the full-size costume room with red walls and the Star’s costume"></a>
+          <figcaption>Costume room.</figcaption>
+        </figure>
+      </section>
+      <section class="reference-panel lighting-review" id="set-lighting" aria-labelledby="set-lighting-title">
+        <div class="reference-intro">
+          <h3 id="set-lighting-title">Lighting and playtest fixes</h3>
+        </div>
+        <div>
+          <h4>A spotlight pointed the wrong way</h4>
+          <p>A bright stripe near the ceiling gave away the first bug. When the house turned a room around, its fill light still assumed the front was on the old side. Some lamps even cast shadows from inside their own shades. We aimed the lights through the open fronts and gave each room one shadow-casting key light.</p>
+          <figure>
+            <a href="media/2026-11-14/room-lighting-before-after.jpg"><img src="media/2026-11-14/room-lighting-before-after.jpg" loading="lazy" alt="View how the studio lighting pass changed the ceiling and furniture shadows"></a>
+            <figcaption>Playtest lighting on the left, studio lighting pass on the right.</figcaption>
+          </figure>
+          <figure>
+            <a href="media/2026-11-14/room-shadows-before-after.jpg"><img src="media/2026-11-14/room-shadows-before-after.jpg" loading="lazy" alt="View the full-size laundry comparison showing overlapping shadows on the left and clean shadows on the right"></a>
+            <figcaption>Laundry shadows. The single key light gives the machines a clearer shadow on the floor.</figcaption>
+          </figure>
+        </div>
+        <div>
+          <h4>The TV went black for guests</h4>
+          <p>We compared the host and guest views from the same camera angle. The guest could see the inside faces of the TV casing. Mirroring the room had flipped the TV after the renderer decided which faces to draw. Refreshing that decision after attachment fixed it.</p>
+          <figure>
+            <a href="media/2026-11-14/client-black-art-fix.jpg"><img src="media/2026-11-14/client-black-art-fix.jpg" loading="lazy" alt="View the full-size guest comparison showing the black TV before the fix and the lit casing after it"></a>
+            <figcaption>Living room TV from a guest’s view, before and after.</figcaption>
+          </figure>
+          <h4>The garage door led to a dead end</h4>
+          <p>At full room width, the angled partition blocked the way into the garage from the left door. We shifted it to leave an 85 cm passage along the wall.</p>
+          <figure>
+            <a href="media/2026-11-14/garage-left-passage.jpg"><img src="media/2026-11-14/garage-left-passage.jpg" loading="lazy" alt="View the full-size playtest screenshot of the cleared passage beside the garage partition"></a>
+            <figcaption>The path from the left door after moving the partition.</figcaption>
+          </figure>
+        </div>
+      </section>
+      <section class="reference-panel" id="hand-reference" aria-labelledby="hand-reference-title">
+        <div class="reference-intro">
+          <h3 id="hand-reference-title">From real hands to first-person animations</h3>
+          <p>We picked up an egg, a roll of toilet paper and five other props and filmed our own hands. A USB drive fits between the fingers. A toilet roll needs the whole palm. Those two grips gave us a starting point for all eleven held items. We went back for one more pass when the Girl’s thumb hid the ends of the lipstick and USB drive.</p>
+        </div>
+        <figure>
+          <video controls preload="none" playsinline aria-label="Seven real-life hand grip references" poster="media/2026-11-14/item-grip-reference-poster.jpg" src="media/2026-11-14/item-grip-reference.mp4"></video>
+          <figcaption><strong>Phone footage.</strong> Left to right, toilet paper, egg, scissors, USB drive, wrench, pliers and lipstick.</figcaption>
+        </figure>
+        <figure>
+          <video controls preload="none" playsinline aria-label="First-person hand grips in the game" poster="media/2026-11-14/reference-hand-holds-poster.jpg" src="media/2026-11-14/reference-hand-holds.mp4"></video>
+          <figcaption><strong>In the game.</strong> The Boy’s grip on the left and the Girl’s on the right.</figcaption>
+        </figure>
+      </section>
+    </article>
+
+    <article class="story" id="nov-15">
+      <div>
+        <time datetime="2026-11-15">November 15, 2026</time>
+        <h2>What made it into the cut?</h2>
+        <p>One exported Director’s Cut was 21 seconds of the results screen. The second showed the replay. Both came out silent. We cleared the interface for capture and recovered the match audio, so a replay can keep the players’ voices and the crowd’s reaction to the same prank.</p>
+        <p>The tutorial prison had a problem of its own. It almost washed out next to the match rooms. Giving it the same studio lights and exposure as the match brought back the shadows on the floor and bars.</p>
+        <details class="day-notes">
+          <summary><span class="notes-mark" aria-hidden="true"></span>Day’s Notes<span class="notes-toggle" aria-hidden="true"></span></summary>
+          <div class="notes-body">
+            <p><strong>Every fifth frame held twice.</strong> One recording snapped a 25 fps take onto a 30 fps timeline. Keeping each frame’s capture time removed the stutter.</p>
+            <p><strong>A pause between syllables used to slow you down.</strong> We let movement hold its speed briefly before easing off.</p>
+            <a class="notes-link" href="../Devlog.md#2026-11-15">Full notes ↗</a>
+          </div>
+        </details>
+      </div>
+      <div class="comparison" role="group" aria-label="Tutorial prison lighting comparison">
+        <figure>
+          <img src="media/2026-11-15/devlog-prison-before.jpg" loading="lazy" alt="Tutorial prison with the original bright lighting">
+          <figcaption>Before · Tutorial lighting</figcaption>
+        </figure>
+        <figure>
+          <img src="media/2026-11-15/devlog-prison-after.jpg" loading="lazy" alt="The same tutorial prison camera under the studio key light">
+          <figcaption>After · Match lighting</figcaption>
+        </figure>
+      </div>
+      <section class="team-call" id="team-call" aria-labelledby="team-call-title">
+        <div>
+          <h3 id="team-call-title">Fifteen hours in the dev call</h3>
+          <p>We spent 15 hours and 34 minutes in the dev call. With three screens to compare, we could check who heard a sound, who saw a bug, and whether everyone made it back to the call sheet after the same take.</p>
+        </div>
+        <img src="media/2026-11-15/discord-dev-call.jpg" width="359" height="163" alt="Three people in the Discord Dev voice channel after 15 hours, 34 minutes and 58 seconds, with one person sharing live.">
+      </section>
+      <section class="reference-panel" id="playtest-audio" aria-labelledby="playtest-audio-title">
+        <div class="reference-intro">
+          <h3 id="playtest-audio-title">From the mic to the replay</h3>
+          <p>Listen to the mic in the middle of a take, then hear what the Director’s Cut kept from the living-room encounter.</p>
+        </div>
+        <figure>
+          <video controls preload="none" playsinline aria-label="Microphone-driven running during the playtest" poster="media/2026-11-15/playtest-microphone.jpg" src="media/2026-11-15/playtest-microphone.mp4"></video>
+          <figcaption><strong>In the match.</strong> The microphone meter flips from Walk to Run.</figcaption>
+        </figure>
+        <figure>
+          <video controls preload="none" playsinline aria-label="Living room encounter in the Director’s Cut replay" poster="media/2026-11-15/playtest-directors-cut.jpg" src="media/2026-11-15/playtest-directors-cut.mp4"></video>
+          <figcaption><strong>In the Director’s Cut.</strong> The Star walks in on the pranksters in the living room.</figcaption>
+        </figure>
+      </section>
+    </article>
+  </section>
+</main>
+<footer>
+  <div class="wrap">
+    <a class="archive" href="../Devlog.md">Full devlog and verification ↗</a>
+    <a class="archive" href="#top">Back to top ↑</a>
+  </div>
+</footer>
+</body>
+</html>
